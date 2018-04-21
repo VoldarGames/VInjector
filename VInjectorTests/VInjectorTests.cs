@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VInjectorCore;
 using VInjectorCore.Core;
@@ -15,6 +16,14 @@ namespace VInjectorTests
         public void TearDown()
         {
             VInjector.RegistrationDictionary.Clear();    
+        }
+
+        [TestCategory("AutoRegister")]
+        [TestMethod]
+        public void AutoRegisterTypes_RegistrationOk()
+        {
+            VInjector.Initialize(this);
+            Assert.AreEqual(1, VInjector.RegistrationDictionary.Count);
         }
 
         [TestCategory("Register_Failure")]
@@ -121,6 +130,7 @@ namespace VInjectorTests
         [TestMethod]
         public void ResolveUnregisteredNamedInstance_ThrowUnregisteredException()
         {
+            VInjector.Register<IComplexDummy, ComplexDummy>();
             var instanceResult = VInjector.Resolve<IDummy>("UnregisteredInstance");
         }
 
