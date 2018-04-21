@@ -35,8 +35,14 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
+    <Folder Include="Attributes\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\AlreadyRegisteredTypeVInjectorException.cs" />
+    <Compile Include="Core\LifeTime.cs" />
+    <Compile Include="Core\RegisteredInstanceType.cs" />
+    <Compile Include="Core\RegisteredType.cs" />
+    <Compile Include="Exceptions\UnRegisteredTypeVInjectorException.cs" />
     <Compile Include="VInjector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

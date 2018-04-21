@@ -1,9 +1,13 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VInjectorCore;
+using VInjectorCore.Core;
+using VInjectorCore.Exceptions;
 
 namespace VInjectorTests
 {
+    [ExcludeFromCodeCoverage]
     [TestClass]
     public class VInjectorTests
     {
@@ -13,7 +17,25 @@ namespace VInjectorTests
             VInjector.RegistrationDictionary.Clear();    
         }
 
-        [TestCategory("Register")]
+        [TestCategory("Register_Failure")]
+        [ExpectedException(typeof(AlreadyRegisteredTypeVInjectorException))]
+        [TestMethod]
+        public void RegisterSameType2TimesWithoutRegistrationName_ThrowAlreadyRegisteredException()
+        {
+            VInjector.Register<IDummy, Dummy>();
+            VInjector.Register<IDummy, Dummy>();
+        }
+
+        [TestCategory("Register_Failure")]
+        [ExpectedException(typeof(AlreadyRegisteredTypeVInjectorException))]
+        [TestMethod]
+        public void RegisterSameType2TimesWithSameRegistrationName_ThrowAlreadyRegisteredException()
+        {
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, null, 0, "SameName");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, null, 0, "SameName");
+        }
+
+        [TestCategory("Register_Success")]
         [TestMethod]
         public void RegisterType_RegisterOk()
         {
@@ -24,7 +46,21 @@ namespace VInjectorTests
             Assert.IsNotNull(VInjector.RegistrationDictionary.Values.Single().Instance);
         }
 
-        [TestCategory("Register")]
+        [TestCategory("Register_Success")]
+        [ExpectedException(typeof(AlreadyRegisteredTypeVInjectorException))]
+        [TestMethod]
+        public void RegisterSameType2TimesWithDifferentRegistrationName_RegisterOk()
+        {
+            var dummy1 = new Dummy() {Number = 1};
+            var dummy2 = new Dummy() {Number = 2};
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy2, 0, "DummyType2");
+
+            Assert.AreSame(dummy1, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 1).Instance);
+            Assert.AreSame(dummy2, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 2).Instance);
+        }
+
+        [TestCategory("Register_Success")]
         [TestMethod]
         public void RegisterInstance_RegisterOk()
         {
@@ -39,7 +75,7 @@ namespace VInjectorTests
             Assert.AreSame(dummyInstance, VInjector.RegistrationDictionary.Values.Single().Instance);
         }
 
-        [TestCategory("Register")]
+        [TestCategory("Register_Success")]
         [TestMethod]
         public void RegisterTypeWithoutParameters_RegisterParametersOk()
         {
@@ -53,7 +89,7 @@ namespace VInjectorTests
             Assert.IsNotNull(VInjector.RegistrationDictionary.Values.Single().Instance);
         }
 
-        [TestCategory("Register")]
+        [TestCategory("Register_Success")]
         [TestMethod]
         public void RegisterInstanceWithParameters_RegisterParametersOk()
         {
@@ -72,9 +108,25 @@ namespace VInjectorTests
             Assert.AreNotSame(dummyInstance, VInjector.RegistrationDictionary.Values.Single().Instance);
         }
 
-        [TestCategory("Retrieve")]
+        [TestCategory("Resolve_Failure")]
+        [ExpectedException(typeof(UnRegisteredTypeVInjectorException))]
         [TestMethod]
-        public void RetrieveGlobalInstance_InstanceIsTheSame()
+        public void ResolveUnregisteredInstance_ThrowUnregisteredException()
+        {
+            var instanceResult = VInjector.Resolve<IDummy>();
+        }
+
+        [TestCategory("Resolve_Failure")]
+        [ExpectedException(typeof(UnRegisteredTypeVInjectorException))]
+        [TestMethod]
+        public void ResolveUnregisteredNamedInstance_ThrowUnregisteredException()
+        {
+            var instanceResult = VInjector.Resolve<IDummy>("UnregisteredInstance");
+        }
+
+        [TestCategory("Resolve_Success")]
+        [TestMethod]
+        public void ResolveGlobalInstance_InstanceIsTheSame()
         {
             var dummyInstance = new Dummy
             {
@@ -87,9 +139,23 @@ namespace VInjectorTests
             Assert.AreSame(dummyInstance, instanceResult);
         }
 
-        [TestCategory("Retrieve")]
+        [TestCategory("Resolve_Success")]
         [TestMethod]
-        public void RetrieveNewInstance_InstanceIsNotTheSame()
+        public void ResolveUniqueNamedGlobalInstance_InstanceIsTheSame()
+        {
+            var dummy1 = new Dummy { Number = 1 };
+            var dummy2 = new Dummy { Number = 2 };
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1, 0, "MyDummy_1");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy2, 0, "MyDummy_2");
+
+            var instanceResult = VInjector.Resolve<IDummy>("MyDummy_2");
+
+            Assert.AreSame(dummy2, instanceResult);
+        }
+
+        [TestCategory("Resolve_Success")]
+        [TestMethod]
+        public void ResolveNewInstance_InstanceIsNotTheSame()
         {
             var dummyInstance = new Dummy
             {
@@ -102,5 +168,7 @@ namespace VInjectorTests
 
             Assert.AreNotSame(dummyInstance, instanceResult);
         }
+
+
     }
 }

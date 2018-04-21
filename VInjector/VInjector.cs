@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using VInjectorCore.Core;
+using VInjectorCore.Exceptions;
 
 namespace VInjectorCore
 {
@@ -17,7 +19,7 @@ namespace VInjectorCore
         {
             if (RegistrationDictionary.Keys.Any(
                     type => type.InterfaceType == typeof(TInterface) 
-                    && type.RegistrationName.Equals(typeof(TInstance).Name)))
+                    && (type.RegistrationName.Equals(typeof(TInstance).Name) || type.RegistrationName.Equals(registrationName))))
             {
                 throw new AlreadyRegisteredTypeVInjectorException(typeof(TInterface), typeof(TInstance));
             }
@@ -46,7 +48,7 @@ namespace VInjectorCore
                                                                             && (registrationName == null || type.RegistrationName.Equals(registrationName)))
                                                                             .OrderBy(type => type.Priority)
                                                                             .FirstOrDefault();
-            if (priorizedRegisteredType == null) throw new UnRegisteredTypeVInjectorException();
+            if (priorizedRegisteredType == null) throw new UnRegisteredTypeVInjectorException(typeof(TInterface), registrationName);
 
             var priorizedRegisteredInstance = RegistrationDictionary[priorizedRegisteredType];
 
@@ -54,41 +56,9 @@ namespace VInjectorCore
             {
                 case LifeTime.NewInstance:
                     return (TInterface)Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
-                case LifeTime.Global:
+                default: //LifeTime.Global
                     return (TInterface)priorizedRegisteredInstance.Instance;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
-    }
-
-    public class UnRegisteredTypeVInjectorException : Exception
-    {
-    }
-
-    public class AlreadyRegisteredTypeVInjectorException : Exception
-    {
-        public AlreadyRegisteredTypeVInjectorException(Type interfaceType, Type instanceType) 
-            : base($"Interface {interfaceType.Name} is already registered with Type {instanceType.Name}") { }
-    }
-
-    public enum LifeTime
-    {
-        NewInstance,
-        Global
-    }
-
-    internal class RegisteredType
-    {
-        public Type InterfaceType { get; set; }
-        public string RegistrationName { get; set; }
-        public int Priority { get; set; }
-        public LifeTime LifeTime { get; set; }
-    }
-
-    internal class RegisteredInstanceType
-    {
-        public Type InstanceType { get; set; }
-        public object Instance { get; set; }
     }
 }
