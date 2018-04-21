@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using VInjectorCore.Attributes;
 using VInjectorCore.Core;
 using VInjectorCore.Exceptions;
 
@@ -11,36 +13,56 @@ namespace VInjectorCore
         internal static Dictionary<RegisteredType, RegisteredInstanceType> RegistrationDictionary
             = new Dictionary<RegisteredType, RegisteredInstanceType>();
 
+        public static void Initialize<T>(T assemblyType)
+        {
+            var assembly = Assembly.Load(new AssemblyName(assemblyType.GetType().AssemblyQualifiedName));
+            List<Type> autoRegisterTypes = new List<Type>();
+            foreach (var type in assembly.DefinedTypes)
+            {
+                var autoRegisterAttribute = type.GetCustomAttribute<VAutoRegister>();
+                if (autoRegisterAttribute != null)
+                {
+                    InternalRegister(autoRegisterAttribute.InterfaceType, type.DeclaringType,
+                        autoRegisterAttribute.Lifetime, null, autoRegisterAttribute.Priority, autoRegisterAttribute.RegistrationName);
+                }
+            }
+        }
+
+        private static void InternalRegister(Type typeInterface, Type typeInstance, LifeTime lifeTime, object instance, int priority, string registrationName)
+        {
+            if (RegistrationDictionary.Keys.Any(
+                type => type.InterfaceType == typeInterface
+                        && (type.RegistrationName.Equals(typeInstance.Name) || type.RegistrationName.Equals(registrationName))))
+            {
+                throw new AlreadyRegisteredTypeVInjectorException(typeInterface, typeInstance);
+            }
+            if (lifeTime == LifeTime.NewInstance)
+            {
+                instance = null;
+            }
+            var registeredInstance = instance == null && lifeTime == LifeTime.Global ? Activator.CreateInstance(typeInstance) : instance;
+            RegistrationDictionary.Add(
+                new RegisteredType
+                {
+                    RegistrationName = registrationName ?? typeInstance.Name,
+                    Priority = priority,
+                    InterfaceType = typeInterface,
+                    LifeTime = lifeTime
+                },
+                new RegisteredInstanceType
+                {
+                    Instance = registeredInstance,
+                    InstanceType = typeInstance
+                });
+        }
+
         public static void Register<TInterface, TInstance>
             (LifeTime lifeTime = LifeTime.Global, TInstance instance = default(TInstance),
             int priority = 0, string registrationName = null)
             where TInstance : class, TInterface, new()
             where TInterface : class
         {
-            if (RegistrationDictionary.Keys.Any(
-                    type => type.InterfaceType == typeof(TInterface) 
-                    && (type.RegistrationName.Equals(typeof(TInstance).Name) || type.RegistrationName.Equals(registrationName))))
-            {
-                throw new AlreadyRegisteredTypeVInjectorException(typeof(TInterface), typeof(TInstance));
-            }
-            if (lifeTime == LifeTime.NewInstance)
-            {
-                instance = null;
-            }
-            var registeredInstance = instance == null && lifeTime == LifeTime.Global ? Activator.CreateInstance<TInstance>() : instance;
-            RegistrationDictionary.Add(
-                new RegisteredType
-                {
-                RegistrationName = registrationName ?? typeof(TInstance).Name,
-                Priority = priority,
-                InterfaceType = typeof(TInterface),
-                LifeTime = lifeTime
-                },
-                new RegisteredInstanceType
-                {
-                    Instance = registeredInstance,
-                    InstanceType = typeof(TInstance)
-                });
+            InternalRegister(typeof(TInterface), typeof(TInstance), lifeTime, instance, priority, registrationName);
         }
         public static TInterface Resolve<TInterface>(string registrationName = null) where TInterface : class 
         {

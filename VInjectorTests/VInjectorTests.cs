@@ -17,6 +17,14 @@ namespace VInjectorTests
             VInjector.RegistrationDictionary.Clear();    
         }
 
+        [TestCategory("AutoRegister")]
+        [TestMethod]
+        public void AutoRegisterTypes_RegistrationOk()
+        {
+            VInjector.Initialize(this);
+            Assert.AreEqual(1, VInjector.RegistrationDictionary.Count);
+        }
+
         [TestCategory("Register_Failure")]
         [ExpectedException(typeof(AlreadyRegisteredTypeVInjectorException))]
         [TestMethod]

@@ -6,4 +6,10 @@ namespace VInjectorTests
     {
         int Number { get; set; }
     }
+
+    internal interface IComplexDummy
+    {
+        Dummy Dummy { get; set; }
+        int Number { get; set; }
+    }
 }
