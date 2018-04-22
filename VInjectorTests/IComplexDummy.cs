@@ -1,9 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace VInjectorTests
 {
-    internal interface IDummy
+    internal interface IComplexDummy
     {
+        IDummy Dummy { get; set; }
         int Number { get; set; }
     }
 }

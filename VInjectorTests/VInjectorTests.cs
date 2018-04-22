@@ -179,6 +179,31 @@ namespace VInjectorTests
             Assert.AreNotSame(dummyInstance, instanceResult);
         }
 
+        [TestCategory("Resolve_Success")]
+        [TestMethod]
+        public void ResolveGlobalInstanceWithDependencies_InstancesAreTheSame()
+        {
+            var dummyInstance = new Dummy
+            {
+                Number = 111
+            };
+
+            var complex = new ComplexDummy
+            {
+                Number = 222
+            };
+
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyInstance);
+            VInjector.Register<IComplexDummy, ComplexDummy>(LifeTime.Global, complex);
+
+            var instanceResult = VInjector.Resolve<IComplexDummy>();
+
+            Assert.AreSame(complex, instanceResult);
+            Assert.AreSame(dummyInstance, instanceResult.Dummy);
+            Assert.AreEqual(111, instanceResult.Dummy.Number);
+            Assert.AreEqual(222, instanceResult.Number);
+        }
+
 
     }
 }
