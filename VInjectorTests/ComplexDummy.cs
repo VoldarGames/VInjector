@@ -9,7 +9,7 @@ namespace VInjectorTests
     internal class ComplexDummy : IComplexDummy
     {
         [VInject]
-        public Dummy Dummy { get; set; }
+        public IDummy Dummy { get; set; }
         public int Number { get; set; }
     }
 }

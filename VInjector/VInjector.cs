@@ -15,8 +15,8 @@ namespace VInjectorCore
 
         public static void Initialize<T>(T assemblyType)
         {
-            var assembly = Assembly.Load(new AssemblyName(assemblyType.GetType().AssemblyQualifiedName));
-            List<Type> autoRegisterTypes = new List<Type>();
+            var assemblyName = typeof(T).AssemblyQualifiedName;
+            var assembly = Assembly.Load(new AssemblyName(assemblyName));
             foreach (var type in assembly.DefinedTypes)
             {
                 var autoRegisterAttribute = type.GetCustomAttribute<VAutoRegister>();
@@ -56,6 +56,25 @@ namespace VInjectorCore
                 });
         }
 
+        static object InternalResolve(Type interfaceType, string registrationName = null)
+        {
+            var priorizedRegisteredType = RegistrationDictionary.Keys.Where(type => type.InterfaceType == interfaceType
+                                                                             && (registrationName == null || type.RegistrationName.Equals(registrationName)))
+                                                                             .OrderBy(type => type.Priority)
+                                                                             .FirstOrDefault();
+            if (priorizedRegisteredType == null) throw new UnRegisteredTypeVInjectorException(interfaceType, registrationName);
+
+            var priorizedRegisteredInstance = RegistrationDictionary[priorizedRegisteredType];
+
+            switch (priorizedRegisteredType.LifeTime)
+            {
+                case LifeTime.NewInstance:
+                    return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
+                default: //LifeTime.Global
+                    return priorizedRegisteredInstance.Instance;
+            }
+        }
+
         public static void Register<TInterface, TInstance>
             (LifeTime lifeTime = LifeTime.Global, TInstance instance = default(TInstance),
             int priority = 0, string registrationName = null)
@@ -64,23 +83,19 @@ namespace VInjectorCore
         {
             InternalRegister(typeof(TInterface), typeof(TInstance), lifeTime, instance, priority, registrationName);
         }
-        public static TInterface Resolve<TInterface>(string registrationName = null) where TInterface : class 
+
+        public static TInterface Resolve<TInterface>(string registrationName = null) where TInterface : class
         {
-            var priorizedRegisteredType = RegistrationDictionary.Keys.Where(type => type.InterfaceType == typeof(TInterface)
-                                                                            && (registrationName == null || type.RegistrationName.Equals(registrationName)))
-                                                                            .OrderBy(type => type.Priority)
-                                                                            .FirstOrDefault();
-            if (priorizedRegisteredType == null) throw new UnRegisteredTypeVInjectorException(typeof(TInterface), registrationName);
-
-            var priorizedRegisteredInstance = RegistrationDictionary[priorizedRegisteredType];
-
-            switch (priorizedRegisteredType.LifeTime)
+            var resolvedInstance = (TInterface) InternalResolve(typeof(TInterface), registrationName);
+            foreach (var property in resolvedInstance.GetType().GetRuntimeProperties())
             {
-                case LifeTime.NewInstance:
-                    return (TInterface)Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
-                default: //LifeTime.Global
-                    return (TInterface)priorizedRegisteredInstance.Instance;
+                var vInjectAttribute = property.GetCustomAttribute<VInject>();
+                if (vInjectAttribute != null)
+                {
+                    property.SetValue(resolvedInstance, InternalResolve(property.PropertyType, vInjectAttribute.RegistrationName));
+                }
             }
+            return resolvedInstance;
         }
     }
 }
