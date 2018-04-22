@@ -39,6 +39,8 @@
   <ItemGroup>
     <Compile Include="Attributes\VAutoRegister.cs" />
     <Compile Include="Attributes\VInject.cs" />
+    <Compile Include="Core\Interfaces\IVAppContext.cs" />
+    <Compile Include="Core\Interfaces\IVInjector.cs" />
     <Compile Include="Exceptions\AlreadyRegisteredTypeVInjectorException.cs" />
     <Compile Include="Core\LifeTime.cs" />
     <Compile Include="Core\RegisteredInstanceType.cs" />

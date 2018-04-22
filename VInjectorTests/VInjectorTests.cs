@@ -1,18 +1,24 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VInjectorCore;
 using VInjectorCore.Core;
+using VInjectorCore.Core.Interfaces;
 using VInjectorCore.Exceptions;
 
 namespace VInjectorTests
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
-    public class VInjectorTests
+    public class VInjectorTests : IVAppContext
     {
+        public VInjector VInjector;
+        [TestInitialize]
+        public void Initialize()
+        {
+            VInjector = new VInjector();
+        }
+
         [TestCleanup]
         public void TearDown()
         {
@@ -23,8 +29,18 @@ namespace VInjectorTests
         [TestMethod]
         public void AutoRegisterTypes_RegistrationOk()
         {
-            VInjector.Initialize(this);
+            VInjector.Initialize<VInjectorTests>();
             Assert.AreEqual(1, VInjector.RegistrationDictionary.Count);
+        }
+
+        [TestCategory("AutoRegister")]
+        [TestMethod]
+        public void AutoRegisterTypes_RetrieveOk()
+        {
+            VInjector.Initialize<VInjectorTests>();
+            var instanceResult = VInjector.Resolve<IComplexDummy>();
+            Assert.IsNotNull(instanceResult);
+           // Assert.IsNotNull(instanceResult.Dummy);
         }
 
         [TestCategory("Register_Failure")]
