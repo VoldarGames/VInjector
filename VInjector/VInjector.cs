@@ -10,6 +10,7 @@ namespace VInjectorCore
 {
     public static class VInjector
     {
+        private static List<Type> LoopDetectionList = new List<Type>();
         internal static Dictionary<RegisteredType, RegisteredInstanceType> RegistrationDictionary
             = new Dictionary<RegisteredType, RegisteredInstanceType>();
 
@@ -86,16 +87,27 @@ namespace VInjectorCore
 
         public static TInterface Resolve<TInterface>(string registrationName = null) where TInterface : class
         {
-            var resolvedInstance = (TInterface) InternalResolve(typeof(TInterface), registrationName);
-            foreach (var property in resolvedInstance.GetType().GetRuntimeProperties())
+            LoopDetectionList.Clear();
+            var resolvedInstance = (TInterface)InternalResolve(typeof(TInterface), registrationName);
+            Inject(resolvedInstance);
+            return resolvedInstance;
+        }
+
+        private static void Inject(object instance)
+        {
+            var instanceType = instance.GetType();
+            if (LoopDetectionList.Count(t => t == instanceType) > 1) return;
+            foreach (var property in instance.GetType().GetRuntimeProperties())
             {
                 var vInjectAttribute = property.GetCustomAttribute<VInject>();
                 if (vInjectAttribute != null)
                 {
-                    property.SetValue(resolvedInstance, InternalResolve(property.PropertyType, vInjectAttribute.RegistrationName));
+                    property.SetValue(instance, InternalResolve(property.PropertyType, vInjectAttribute.RegistrationName));
+                    LoopDetectionList.Add(instanceType);
+                    Inject(property.GetValue(instance));
+                    LoopDetectionList.Remove(instanceType);
                 }
             }
-            return resolvedInstance;
         }
     }
 }

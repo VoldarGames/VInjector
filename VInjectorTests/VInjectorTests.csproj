@@ -51,9 +51,15 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ComplexDummy.cs" />
+    <Compile Include="CyclicDependencyDummyPart1.cs" />
+    <Compile Include="CyclicDependencyDummyPart2.cs" />
     <Compile Include="Dummy.cs" />
     <Compile Include="IComplexDummy.cs" />
+    <Compile Include="ICyclicDependencyDummyPart1.cs" />
+    <Compile Include="ICyclicDependencyDummyPart2.cs" />
     <Compile Include="IDummy.cs" />
+    <Compile Include="IMoreComplexDummy.cs" />
+    <Compile Include="MoreComplexDummy.cs" />
     <Compile Include="VInjectorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

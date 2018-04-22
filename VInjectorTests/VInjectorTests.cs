@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VInjectorCore;
 using VInjectorCore.Core;
@@ -131,7 +132,7 @@ namespace VInjectorTests
         public void ResolveUnregisteredNamedInstance_ThrowUnregisteredException()
         {
             VInjector.Register<IComplexDummy, ComplexDummy>();
-            var instanceResult = VInjector.Resolve<IDummy>("UnregisteredInstance");
+            var instanceResult = VInjector.Resolve<IComplexDummy>("UnregisteredInstance");
         }
 
         [TestCategory("Resolve_Success")]
@@ -204,6 +205,52 @@ namespace VInjectorTests
             Assert.AreEqual(222, instanceResult.Number);
         }
 
+        [TestCategory("Resolve_Success")]
+        [TestMethod]
+        public void ResolveGlobalInstanceWithNestedDependencies_InstancesAreTheSame()
+        {
+            var moreComplexDummy = new MoreComplexDummy
+            {
+                Name = "1234"
+            };
+
+            var complex = new ComplexDummy()
+            {
+                Number = 111
+            };
+
+            var dummy = new Dummy()
+            {
+                Number = 222
+            };
+
+            VInjector.Register<IMoreComplexDummy, MoreComplexDummy>(LifeTime.Global, moreComplexDummy);
+            VInjector.Register<IComplexDummy, ComplexDummy>(LifeTime.Global, complex);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy);
+
+            var instanceResult = VInjector.Resolve<IMoreComplexDummy>();
+
+            Assert.AreSame(moreComplexDummy, instanceResult);
+            Assert.AreSame(complex, instanceResult.ComplexDummy);
+            Assert.AreSame(dummy, instanceResult.ComplexDummy.Dummy);
+            Assert.AreEqual("1234",instanceResult.Name);
+            Assert.AreEqual(111,instanceResult.ComplexDummy.Number);
+            Assert.AreEqual(222,instanceResult.ComplexDummy.Dummy.Number);
+        }
+
+        [TestCategory("Resolve_Success")]
+        [TestMethod]
+        public void ResolveGlobalInstanceWithCyclicDependencies_InstancesAreTheSame()
+        {
+            var cyclic1 = new CyclicDependencyDummyPart1();
+            var cyclic2 = new CyclicDependencyDummyPart2();
+            VInjector.Register<ICyclicDependencyDummyPart1, CyclicDependencyDummyPart1>(LifeTime.Global, cyclic1);
+            VInjector.Register<ICyclicDependencyDummyPart2, CyclicDependencyDummyPart2>(LifeTime.Global, cyclic2);
+
+            var instanceResult = VInjector.Resolve<ICyclicDependencyDummyPart1>();
+            Assert.AreSame(cyclic1, instanceResult);
+            Assert.AreSame(cyclic2, instanceResult.Part2);
+        }
 
     }
 }
