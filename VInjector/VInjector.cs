@@ -22,8 +22,8 @@ namespace VInjectorCore
                 var autoRegisterAttribute = type.GetCustomAttribute<VAutoRegister>();
                 if (autoRegisterAttribute != null)
                 {
-                    InternalRegister(autoRegisterAttribute.InterfaceType, type.DeclaringType,
-                        autoRegisterAttribute.Lifetime, type, autoRegisterAttribute.Priority, autoRegisterAttribute.RegistrationName);
+                    InternalRegister(autoRegisterAttribute.InterfaceType, type.AsType(),
+                        autoRegisterAttribute.Lifetime, null, autoRegisterAttribute.Priority, autoRegisterAttribute.RegistrationName);
                 }
             }
         }

@@ -30,7 +30,7 @@ namespace VInjectorTests
         public void AutoRegisterTypes_RegistrationOk()
         {
             VInjector.Initialize<VInjectorTests>();
-            Assert.AreEqual(1, VInjector.RegistrationDictionary.Count);
+            Assert.AreEqual(2, VInjector.RegistrationDictionary.Count);
         }
 
         [TestCategory("AutoRegister")]
@@ -40,7 +40,7 @@ namespace VInjectorTests
             VInjector.Initialize<VInjectorTests>();
             var instanceResult = VInjector.Resolve<IComplexDummy>();
             Assert.IsNotNull(instanceResult);
-           // Assert.IsNotNull(instanceResult.Dummy);
+            Assert.IsNotNull(instanceResult.Dummy);
         }
 
         [TestCategory("Register_Failure")]
