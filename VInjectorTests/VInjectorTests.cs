@@ -30,7 +30,7 @@ namespace VInjectorTests
         public void AutoRegisterTypes_RegistrationOk()
         {
             VInjector.Initialize<VInjectorTests>();
-            Assert.AreEqual(2, VInjector.RegistrationDictionary.Count);
+            Assert.AreEqual(3, VInjector.RegistrationDictionary.Count);
         }
 
         [TestCategory("AutoRegister")]
@@ -41,6 +41,22 @@ namespace VInjectorTests
             var instanceResult = VInjector.Resolve<IComplexDummy>();
             Assert.IsNotNull(instanceResult);
             Assert.IsNotNull(instanceResult.Dummy);
+        }
+
+        [TestCategory("AutoRegister")]
+        [TestMethod]
+        public void AutoRegisterTypesWithParams_RetrieveOk()
+        {
+            VInjector.Initialize<VInjectorTests>();
+            var instanceResult = VInjector.Resolve<IMoreComplexDummy>();
+            Assert.IsNotNull(instanceResult);
+            Assert.IsNotNull(instanceResult.ComplexDummy);
+            Assert.IsNotNull(instanceResult.ComplexDummy.Dummy);
+            Assert.AreEqual("MoreComplex", VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).RegistrationName);
+            Assert.AreEqual(LifeTime.NewInstance, VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).LifeTime);
+            Assert.AreEqual(1, VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).Priority);
+            Assert.AreEqual(typeof(IMoreComplexDummy), VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).InterfaceType);
+            Assert.AreEqual(typeof(MoreComplexDummy), VInjector.RegistrationDictionary.Values.Single(type => type.InstanceType == typeof(MoreComplexDummy)).InstanceType);
         }
 
         [TestCategory("Register_Failure")]
