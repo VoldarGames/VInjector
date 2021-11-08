@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using VInjectorCore;
 using VInjectorCore.Core;
 using VInjectorCore.Core.Interfaces;
@@ -284,5 +285,21 @@ namespace VInjectorTests
             Assert.AreSame(cyclic2, instanceResult.Part2);
         }
 
+        [TestCategory("Resolve_Success")]
+        [TestMethod]
+        public void MockVInjector_Success()
+        {
+            var mockVInjector = new Mock<IVInjector>() { CallBase = true };
+            var dummy = new Dummy { Number = 12345678 };
+
+            mockVInjector.Setup(injector => injector.Resolve<IDummy>(It.IsAny<string>())).Returns(dummy);
+
+            mockVInjector.Object.Initialize<VInjectorTests>();
+
+            var result = mockVInjector.Object.Resolve<IDummy>();
+
+            Assert.AreSame(dummy, result);
+
+        }
     }
 }
