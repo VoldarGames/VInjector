@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VInjectorTests", "VInjectorTests\VInjectorTests.csproj", "{ADFC9B96-2D66-487E-B5B2-EEE46A4B5BFB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoldarGames.NetCore.VInjector", "VoldarGames.NetCore.VInjector\VoldarGames.NetCore.VInjector.csproj", "{58B84940-3447-4293-AC24-9CC9FD98A06E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VInjector", "VInjector\VInjector.csproj", "{07F763EE-1DDB-451E-9661-5D7937568308}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoldarGames.NetCore.VInjector.UnitTests", "VoldarGames.NetCore.VInjector.UnitTests\VoldarGames.NetCore.VInjector.UnitTests.csproj", "{F676BE82-DBCB-48B6-816E-9774FD7ABD40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ADFC9B96-2D66-487E-B5B2-EEE46A4B5BFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADFC9B96-2D66-487E-B5B2-EEE46A4B5BFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADFC9B96-2D66-487E-B5B2-EEE46A4B5BFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADFC9B96-2D66-487E-B5B2-EEE46A4B5BFB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07F763EE-1DDB-451E-9661-5D7937568308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07F763EE-1DDB-451E-9661-5D7937568308}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07F763EE-1DDB-451E-9661-5D7937568308}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07F763EE-1DDB-451E-9661-5D7937568308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58B84940-3447-4293-AC24-9CC9FD98A06E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58B84940-3447-4293-AC24-9CC9FD98A06E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58B84940-3447-4293-AC24-9CC9FD98A06E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58B84940-3447-4293-AC24-9CC9FD98A06E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F676BE82-DBCB-48B6-816E-9774FD7ABD40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F676BE82-DBCB-48B6-816E-9774FD7ABD40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F676BE82-DBCB-48B6-816E-9774FD7ABD40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F676BE82-DBCB-48B6-816E-9774FD7ABD40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
