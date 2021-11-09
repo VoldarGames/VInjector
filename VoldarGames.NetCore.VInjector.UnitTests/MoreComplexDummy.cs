@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using VInjectorCore.Attributes;
-using VInjectorCore.Core;
+using VoldarGames.NetCore.VInjector.Attributes;
+using VoldarGames.NetCore.VInjector.Core;
 
 namespace VInjectorTests
 {

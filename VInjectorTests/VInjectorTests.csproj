@@ -63,24 +63,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="ComplexDummy.cs" />
-    <Compile Include="CyclicDependencyDummyPart1.cs" />
-    <Compile Include="CyclicDependencyDummyPart2.cs" />
-    <Compile Include="Dummy.cs" />
-    <Compile Include="IComplexDummy.cs" />
-    <Compile Include="ICyclicDependencyDummyPart1.cs" />
-    <Compile Include="ICyclicDependencyDummyPart2.cs" />
-    <Compile Include="IDummy.cs" />
-    <Compile Include="IMoreComplexDummy.cs" />
-    <Compile Include="MoreComplexDummy.cs" />
-    <Compile Include="VInjectorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\VInjector\VInjector.csproj">
-      <Project>{07F763EE-1DDB-451E-9661-5D7937568308}</Project>
-      <Name>VInjector</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

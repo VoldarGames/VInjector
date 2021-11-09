@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using VInjectorCore.Attributes;
+using VoldarGames.NetCore.VInjector.Attributes;
 
 namespace VInjectorTests
 {
