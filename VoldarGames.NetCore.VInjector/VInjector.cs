@@ -52,7 +52,11 @@ namespace VoldarGames.NetCore.VInjector
         {
             if (RegistrationDictionary.Keys.Any(
                 type => type.InterfaceType == typeInterface
-                        && (type.RegistrationName.Equals(typeInstance.Name) || type.RegistrationName.Equals(registrationName))))
+                        && (
+                        (registrationName == null && type.RegistrationName.Equals(typeInstance.Name)) 
+                        || type.RegistrationName.Equals(registrationName)
+                        )
+                        ))
             {
                 throw new AlreadyRegisteredTypeVInjectorException(typeInterface, typeInstance);
             }
@@ -89,7 +93,39 @@ namespace VoldarGames.NetCore.VInjector
             switch (priorizedRegisteredType.LifeTime)
             {
                 case LifeTime.NewInstance:
-                    return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
+                    var ctorWithParameters = priorizedRegisteredInstance.InstanceType.GetConstructors().FirstOrDefault(ctor => ctor.GetCustomAttribute<VInjectCtor>() != null);
+                    if(ctorWithParameters == null)
+                    {
+                        return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
+                    }
+                    var autoInjectParameters = ctorWithParameters.GetCustomAttribute<VInjectCtor>().AutoInjectParameters;
+                    var parameters = ctorWithParameters.GetParameters();
+                    var parameterInstances = new List<object>();
+                    foreach (var parameter in parameters)
+                    {
+                        var vInjectParameter = parameter.GetCustomAttribute<VInjectParameter>();
+                        if(vInjectParameter != null)
+                        {
+                            var parameterTypeDefaultValue = parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null;
+                            if (!object.Equals(vInjectParameter.DefaultValue, parameterTypeDefaultValue))
+                            {
+                                parameterInstances.Add(vInjectParameter.DefaultValue);
+                            }
+                            else
+                            {
+                                parameterInstances.Add(InternalResolve(parameter.ParameterType, vInjectParameter.RegistrationName));
+                            }
+                        }
+                        else if(autoInjectParameters && !parameter.ParameterType.GetTypeInfo().IsValueType)
+                        {
+                            parameterInstances.Add(InternalResolve(parameter.ParameterType));
+                        }
+                        else
+                        {
+                            parameterInstances.Add(parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null);
+                        }
+                    }
+                   return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType, parameterInstances.ToArray());
                 default: //LifeTime.Global
                     return priorizedRegisteredInstance.Instance;
             }

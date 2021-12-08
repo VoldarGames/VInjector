@@ -24,28 +24,29 @@ namespace VInjectorTests
         [Fact]
         public void AutoRegisterTypes_RegistrationOk()
         {
-            VInjector.Initialize<VInjectorTests>();
-            Assert.Equal(3, VInjector.RegistrationDictionary.Count);
-
             VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            Assert.Equal(9, VInjector.RegistrationDictionary.Count);
         }
 
         [Trait("Category", "AutoRegister")]
         [Fact]
         public void AutoRegisterTypes_RetrieveOk()
         {
+            VInjector.RegistrationDictionary.Clear();
             VInjector.Initialize<VInjectorTests>();
             var instanceResult = VInjector.Resolve<IComplexDummy>();
-            Assert.NotNull(instanceResult);
-            Assert.NotNull(instanceResult.Dummy);
 
-            VInjector.RegistrationDictionary.Clear();
+            Assert.NotNull(instanceResult);
+            Assert.NotNull(instanceResult.Dummy);            
         }
 
         [Trait("Category", "AutoRegister")]
         [Fact]
         public void AutoRegisterTypesWithParams_RetrieveOk()
         {
+            VInjector.RegistrationDictionary.Clear();
             VInjector.Initialize<VInjectorTests>();
             var instanceResult = VInjector.Resolve<IMoreComplexDummy>();
             Assert.NotNull(instanceResult);
@@ -56,70 +57,66 @@ namespace VInjectorTests
             Assert.Equal(1, VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).Priority);
             Assert.Equal(typeof(IMoreComplexDummy), VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).InterfaceType);
             Assert.Equal(typeof(MoreComplexDummy), VInjector.RegistrationDictionary.Values.Single(type => type.InstanceType == typeof(MoreComplexDummy)).InstanceType);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Register_Failure")]
         [Fact]
         public void RegisterSameType2TimesWithoutRegistrationName_ThrowAlreadyRegisteredException()
         {
+            VInjector.RegistrationDictionary.Clear();
+
             Assert.Throws<AlreadyRegisteredTypeVInjectorException>(
             () => {
                 VInjector.Register<IDummy, Dummy>();
                 VInjector.Register<IDummy, Dummy>();
             });
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Register_Failure")]
         [Fact]
         public void RegisterSameType2TimesWithSameRegistrationName_ThrowAlreadyRegisteredException()
         {
+            VInjector.RegistrationDictionary.Clear();
+
             Assert.Throws<AlreadyRegisteredTypeVInjectorException>(
             () => {
                 VInjector.Register<IDummy, Dummy>(LifeTime.Global, null, 0, "SameName");
                 VInjector.Register<IDummy, Dummy>(LifeTime.Global, null, 0, "SameName");
             });
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Register_Success")]
         [Fact]
         public void RegisterType_RegisterOk()
         {
+            VInjector.RegistrationDictionary.Clear();
             VInjector.Register<IDummy, Dummy>();
 
             Assert.Single(VInjector.RegistrationDictionary);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
             Assert.NotNull(VInjector.RegistrationDictionary.Values.Single().Instance);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Register_Success")]
         [Fact]
         public void RegisterSameType2TimesWithDifferentRegistrationName_RegisterOk()
         {
-            Assert.Throws<AlreadyRegisteredTypeVInjectorException>(
-            () => {
-                var dummy1 = new Dummy() { Number = 1 };
-                var dummy2 = new Dummy() { Number = 2 };
-                VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1);
-                VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy2, 0, "DummyType2");
-
-                Assert.Same(dummy1, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 1).Instance);
-                Assert.Same(dummy2, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 2).Instance);
-            });            
-
             VInjector.RegistrationDictionary.Clear();
+
+            var dummy1 = new Dummy() { Number = 1 };
+            var dummy2 = new Dummy() { Number = 2 };
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy2, 0, "DummyType2");
+
+            Assert.Same(dummy1, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 1).Instance);
+            Assert.Same(dummy2, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 2).Instance);
         }
 
         [Trait("Category", "Register_Success")]
         [Fact]
         public void RegisterInstance_RegisterOk()
         {
+            VInjector.RegistrationDictionary.Clear();
             var dummyInstance = new Dummy
             {
                 Number = 123
@@ -129,14 +126,13 @@ namespace VInjectorTests
             Assert.Single(VInjector.RegistrationDictionary);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
             Assert.Same(dummyInstance, VInjector.RegistrationDictionary.Values.Single().Instance);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Register_Success")]
         [Fact]
         public void RegisterTypeWithoutParameters_RegisterParametersOk()
         {
+            VInjector.RegistrationDictionary.Clear();
             VInjector.Register<IDummy, Dummy>();
 
             Assert.Equal(typeof(Dummy).Name, VInjector.RegistrationDictionary.Keys.Single().RegistrationName);
@@ -145,14 +141,13 @@ namespace VInjectorTests
             Assert.Equal(typeof(IDummy), VInjector.RegistrationDictionary.Keys.Single().InterfaceType);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
             Assert.NotNull(VInjector.RegistrationDictionary.Values.Single().Instance);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Register_Success")]
         [Fact]
         public void RegisterInstanceWithParameters_RegisterParametersOk()
         {
+            VInjector.RegistrationDictionary.Clear();
             var dummyInstance = new Dummy
             {
                 Number = 123
@@ -166,39 +161,36 @@ namespace VInjectorTests
             Assert.Equal(typeof(IDummy), VInjector.RegistrationDictionary.Keys.Single().InterfaceType);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
             Assert.NotSame(dummyInstance, VInjector.RegistrationDictionary.Values.Single().Instance);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Failure")]
         [Fact]
         public void ResolveUnregisteredInstance_ThrowUnregisteredException()
         {
+            VInjector.RegistrationDictionary.Clear();
             Assert.Throws<UnRegisteredTypeVInjectorException>(
             () => {
                 var instanceResult = VInjector.Resolve<IDummy>();
             });
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Failure")]
         [Fact]
         public void ResolveUnregisteredNamedInstance_ThrowUnregisteredException()
         {
+            VInjector.RegistrationDictionary.Clear();
             Assert.Throws<UnRegisteredTypeVInjectorException>(
             () => {
                 VInjector.Register<IComplexDummy, ComplexDummy>();
                 var instanceResult = VInjector.Resolve<IComplexDummy>("UnregisteredInstance");
-            });           
-
-            VInjector.RegistrationDictionary.Clear();
+            });
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void ResolveGlobalInstance_InstanceIsTheSame()
         {
+            VInjector.RegistrationDictionary.Clear();
             var dummyInstance = new Dummy
             {
                 Number = 123
@@ -208,14 +200,13 @@ namespace VInjectorTests
             var instanceResult = VInjector.Resolve<IDummy>();
 
             Assert.Same(dummyInstance, instanceResult);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void ResolveUniqueNamedGlobalInstance_InstanceIsTheSame()
         {
+            VInjector.RegistrationDictionary.Clear();
             var dummy1 = new Dummy { Number = 1 };
             var dummy2 = new Dummy { Number = 2 };
             VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1, 0, "MyDummy_1");
@@ -224,14 +215,13 @@ namespace VInjectorTests
             var instanceResult = VInjector.Resolve<IDummy>("MyDummy_2");
 
             Assert.Same(dummy2, instanceResult);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void ResolveNewInstance_InstanceIsNotTheSame()
         {
+            VInjector.RegistrationDictionary.Clear();
             var dummyInstance = new Dummy
             {
                 Number = 123
@@ -242,14 +232,14 @@ namespace VInjectorTests
             var instanceResult = VInjector.Resolve<IDummy>();
 
             Assert.NotSame(dummyInstance, instanceResult);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void ResolveGlobalInstanceWithDependencies_InstancesAreTheSame()
         {
+            VInjector.RegistrationDictionary.Clear();
+
             var dummyInstance = new Dummy
             {
                 Number = 111
@@ -269,14 +259,14 @@ namespace VInjectorTests
             Assert.Same(dummyInstance, instanceResult.Dummy);
             Assert.Equal(111, instanceResult.Dummy.Number);
             Assert.Equal(222, instanceResult.Number);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void ResolveGlobalInstanceWithNestedDependencies_InstancesAreTheSame()
         {
+            VInjector.RegistrationDictionary.Clear();
+
             var moreComplexDummy = new MoreComplexDummy
             {
                 Name = "1234"
@@ -304,14 +294,14 @@ namespace VInjectorTests
             Assert.Equal("1234",instanceResult.Name);
             Assert.Equal(111,instanceResult.ComplexDummy.Number);
             Assert.Equal(222,instanceResult.ComplexDummy.Dummy.Number);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void ResolveGlobalInstanceWithCyclicDependencies_InstancesAreTheSame()
         {
+            VInjector.RegistrationDictionary.Clear();
+
             var cyclic1 = new CyclicDependencyDummyPart1();
             var cyclic2 = new CyclicDependencyDummyPart2();
             VInjector.Register<ICyclicDependencyDummyPart1, CyclicDependencyDummyPart1>(LifeTime.Global, cyclic1);
@@ -320,14 +310,14 @@ namespace VInjectorTests
             var instanceResult = VInjector.Resolve<ICyclicDependencyDummyPart1>();
             Assert.Same(cyclic1, instanceResult);
             Assert.Same(cyclic2, instanceResult.Part2);
-
-            VInjector.RegistrationDictionary.Clear();
         }
 
         [Trait("Category", "Resolve_Success")]
         [Fact]
         public void MockVInjector_Success()
         {
+            VInjector.RegistrationDictionary.Clear();
+
             var mockVInjector = new Mock<IVInjector>() { CallBase = true };
             var dummy = new Dummy { Number = 12345678 };
 
@@ -338,8 +328,90 @@ namespace VInjectorTests
             var result = mockVInjector.Object.Resolve<IDummy>();
 
             Assert.Same(dummy, result);
+        }
 
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorVInjectParameterDependencies_DependenciesAreTheSame()
+        {
             VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var dummy = VInjector.Resolve<IDummy>();
+            dummy.Number = 123;
+            var result = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndVInjectParameter");
+
+            Assert.NotNull(result);
+            Assert.Same(dummy, result.Dummy);
+            Assert.Equal(123, result.Dummy.Number);
+        }
+
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorDependencies_DependenciesAreTheSame()
+        {
+            VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var dummy = VInjector.Resolve<IDummy>();
+            dummy.Number = 123;
+            var result = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtor");
+
+            Assert.NotNull(result);
+            Assert.Same(dummy, result.Dummy);
+            Assert.Equal(123, result.Dummy.Number);
+        }
+
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorDependenciesAndSomePrimitives_DependenciesAreTheSameAndPrimitivesAreDefault()
+        {
+            VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var result = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndPrimitives");
+
+            Assert.NotNull(result);
+            Assert.Equal(default, result.Number);
+        }
+
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorDependenciesAndSomePrimitives_DependenciesAreTheSameAndPrimitivesAreProvidedValues()
+        {
+            VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var result = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndPrimitivesWithValues");
+
+            Assert.NotNull(result);
+            Assert.Equal(12, result.Number);
+        }
+
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorDependencies_NamedDependenciesAreTheSame()
+        {
+            VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var dummyA = new Dummy() { Number = 1 };
+            var dummyB = new Dummy() { Number = 2 };
+
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyA, registrationName: "DummyA");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyB, registrationName: "DummyB");
+
+            var resultA = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndVInjectParameterWithNameA");
+            var resultB = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndVInjectParameterWithNameB");
+
+            Assert.NotNull(resultA);
+            Assert.NotNull(resultB);
+
+            Assert.Equal(1, resultA.Dummy.Number);
+            Assert.Equal(2, resultB.Dummy.Number);
+
+            Assert.Same(dummyA, resultA.Dummy);
+            Assert.Same(dummyB, resultB.Dummy);
         }
     }
 }
