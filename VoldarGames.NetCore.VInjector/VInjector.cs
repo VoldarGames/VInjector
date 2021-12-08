@@ -93,7 +93,6 @@ namespace VoldarGames.NetCore.VInjector
             switch (priorizedRegisteredType.LifeTime)
             {
                 case LifeTime.NewInstance:
-                // if priorizedRegisteredInstance.InstanceType has ctor with parameters, then inject parameters; otherwise use activator to crete instance
                     var ctorWithParameters = priorizedRegisteredInstance.InstanceType.GetConstructors().FirstOrDefault(ctor => ctor.GetCustomAttribute<VInjectCtor>() != null);
                     if(ctorWithParameters == null)
                     {
