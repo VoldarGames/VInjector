@@ -3,7 +3,7 @@ using VoldarGames.NetCore.VInjector.Core;
 
 namespace VInjectorTests
 {
-    [VAutoRegister(typeof(IComplexDummyWithCtor), LifeTime.NewInstance, 0, "ComplexDummyWithCtorAndVInjectParameterWithNameA")]
+    [VAutoRegister(typeof(IComplexDummyWithCtor), LifeTime.Transient, 0, "ComplexDummyWithCtorAndVInjectParameterWithNameA")]
     internal class ComplexDummyWithCtorAndVInjectParameterWithNameA : IComplexDummyWithCtor
     {
         public ComplexDummyWithCtorAndVInjectParameterWithNameA()

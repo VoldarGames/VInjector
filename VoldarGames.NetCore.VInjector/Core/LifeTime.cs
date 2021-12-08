@@ -2,7 +2,7 @@
 {
     public enum LifeTime
     {
-        NewInstance,
-        Global
+        Transient,
+        Singleton
     }
 }
