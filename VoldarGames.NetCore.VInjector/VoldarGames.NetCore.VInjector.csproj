@@ -1,7 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>library</OutputType>
     <TargetFrameworks>net48;netcoreapp3.1;netstandard2.0;netstandard2.1;net5.0</TargetFrameworks>
+    <PackageId>VInjector</PackageId>
+    <Version>0.8.0</Version>
+    <Authors>Dani Garcia Sanchez</Authors>
+    <Company>VoldarGames</Company>
+    <PackageDescription>Versatile dependency injection!</PackageDescription>
+    <RepositoryUrl>https://github.com/VoldarGames/VInjector</RepositoryUrl>
   </PropertyGroup>
 
 </Project>
