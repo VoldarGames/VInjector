@@ -32,7 +32,7 @@ namespace VoldarGames.NetCore.VInjector
         }
 
         public void Register<TInterface, TInstance>
-            (LifeTime lifeTime = LifeTime.Global, TInstance instance = default(TInstance),
+            (LifeTime lifeTime = LifeTime.Singleton, TInstance instance = default(TInstance),
             int priority = 0, string registrationName = null)
             where TInstance : class, TInterface, new()
             where TInterface : class
@@ -44,94 +44,130 @@ namespace VoldarGames.NetCore.VInjector
         {
             LoopDetectionList.Clear();
             var resolvedInstance = InternalResolve(typeof(TInterface), registrationName);
-            Inject(resolvedInstance);
+            InjectProperties(resolvedInstance);
             return (TInterface)resolvedInstance;
         }
 
-        void InternalRegister(Type typeInterface, Type typeInstance, LifeTime lifeTime, object instance, int priority, string registrationName)
+        private void InternalRegister(Type interfaceType, Type instanceType, LifeTime lifeTime, object instance, int priority, string registrationName)
         {
-            if (RegistrationDictionary.Keys.Any(
-                type => type.InterfaceType == typeInterface
-                        && (
-                        (registrationName == null && type.RegistrationName.Equals(typeInstance.Name)) 
-                        || type.RegistrationName.Equals(registrationName)
-                        )
-                        ))
-            {
-                throw new AlreadyRegisteredTypeVInjectorException(typeInterface, typeInstance);
-            }
-            if (lifeTime == LifeTime.NewInstance)
-            {
-                instance = null;
-            }
-            var registeredInstance = instance == null && lifeTime == LifeTime.Global ? Activator.CreateInstance(typeInstance) : instance;
+            ValidateRegister(interfaceType, instanceType, registrationName);
+            var registeredInstance = GetInstanceToBeRegistered(instanceType, lifeTime, instance);
+
             RegistrationDictionary.Add(
                 new RegisteredType
                 {
-                    RegistrationName = registrationName ?? typeInstance.Name,
+                    RegistrationName = registrationName ?? instanceType.Name,
                     Priority = priority,
-                    InterfaceType = typeInterface,
+                    InterfaceType = interfaceType,
                     LifeTime = lifeTime
                 },
                 new RegisteredInstanceType
                 {
                     Instance = registeredInstance,
-                    InstanceType = typeInstance
+                    InstanceType = instanceType
                 });
         }
 
-        object InternalResolve(Type interfaceType, string registrationName = null)
+        private object GetInstanceToBeRegistered(Type instanceType, LifeTime lifeTime, object instance)
+        {
+            if (lifeTime == LifeTime.Transient)
+            {
+                instance = null;
+            }
+            return instance == null && lifeTime == LifeTime.Singleton ? Activator.CreateInstance(instanceType) : instance;
+        }
+
+        private void ValidateRegister(Type interfaceType, Type instanceType, string registrationName)
+        {
+            if (RegistrationDictionary.Keys.Any(
+                            registeredType => registeredType.InterfaceType == interfaceType
+                                    && ((registrationName == null && registeredType.RegistrationName.Equals(instanceType.Name))
+                                    || registeredType.RegistrationName.Equals(registrationName)
+                                    )))
+            {
+                throw new AlreadyRegisteredTypeVInjectorException(interfaceType, instanceType);
+            }
+        }
+
+        private object InternalResolve(Type interfaceType, string registrationName = null)
+        {
+            var priorizedRegisteredType = GetPriorizedRegisteredType(interfaceType, registrationName);
+            var priorizedRegisteredInstance = RegistrationDictionary[priorizedRegisteredType];
+
+            switch (priorizedRegisteredType.LifeTime)
+            {
+                case LifeTime.Transient:
+                    var ctorWithParameters = GetCtorWithVInjectCtorAttribute(priorizedRegisteredInstance);
+                    if (ctorWithParameters == null)
+                    {
+                        return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
+                    }
+
+                    var parameterInstances = ResolveCtorParameters(ctorWithParameters);
+                    foreach (var parameterInstance in parameterInstances)
+                    {
+                        InjectProperties(parameterInstance);
+                    }
+                    return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType, parameterInstances.ToArray());
+                default: //LifeTime.Singleton
+                    return priorizedRegisteredInstance.Instance;
+            }
+        }
+
+        private List<object> ResolveCtorParameters(ConstructorInfo ctorWithParameters)
+        {
+            var autoInjectParameters = ctorWithParameters.GetCustomAttribute<VInjectCtor>().AutoInjectParameters;
+            var parameters = ctorWithParameters.GetParameters();
+            var parameterInstances = new List<object>();
+            foreach (var parameter in parameters)
+            {
+                ResolveParameter(autoInjectParameters, parameterInstances, parameter);
+            }
+
+            return parameterInstances;
+        }
+
+        private void ResolveParameter(bool autoInjectParameters, List<object> parameterInstances, ParameterInfo parameter)
+        {
+            var vInjectParameter = parameter.GetCustomAttribute<VInjectParameter>();
+            if (vInjectParameter != null)
+            {
+                var parameterTypeDefaultValue = parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null;
+                if (!object.Equals(vInjectParameter.DefaultValue, parameterTypeDefaultValue))
+                {
+                    parameterInstances.Add(vInjectParameter.DefaultValue);
+                }
+                else
+                {
+                    parameterInstances.Add(InternalResolve(parameter.ParameterType, vInjectParameter.RegistrationName));
+                }
+            }
+            else if (autoInjectParameters && !parameter.ParameterType.GetTypeInfo().IsValueType)
+            {
+                parameterInstances.Add(InternalResolve(parameter.ParameterType));
+            }
+            else
+            {
+                parameterInstances.Add(parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null);
+            }
+        }
+
+        private static ConstructorInfo GetCtorWithVInjectCtorAttribute(RegisteredInstanceType priorizedRegisteredInstance)
+        {
+            return priorizedRegisteredInstance.InstanceType.GetConstructors().FirstOrDefault(ctor => ctor.GetCustomAttribute<VInjectCtor>() != null);
+        }
+
+        private static RegisteredType GetPriorizedRegisteredType(Type interfaceType, string registrationName)
         {
             var priorizedRegisteredType = RegistrationDictionary.Keys.Where(type => type.InterfaceType == interfaceType
                                                                                     && (registrationName == null || type.RegistrationName.Equals(registrationName)))
                 .OrderBy(type => type.Priority)
                 .FirstOrDefault();
             if (priorizedRegisteredType == null) throw new UnRegisteredTypeVInjectorException(interfaceType, registrationName);
-
-            var priorizedRegisteredInstance = RegistrationDictionary[priorizedRegisteredType];
-
-            switch (priorizedRegisteredType.LifeTime)
-            {
-                case LifeTime.NewInstance:
-                    var ctorWithParameters = priorizedRegisteredInstance.InstanceType.GetConstructors().FirstOrDefault(ctor => ctor.GetCustomAttribute<VInjectCtor>() != null);
-                    if(ctorWithParameters == null)
-                    {
-                        return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType);
-                    }
-                    var autoInjectParameters = ctorWithParameters.GetCustomAttribute<VInjectCtor>().AutoInjectParameters;
-                    var parameters = ctorWithParameters.GetParameters();
-                    var parameterInstances = new List<object>();
-                    foreach (var parameter in parameters)
-                    {
-                        var vInjectParameter = parameter.GetCustomAttribute<VInjectParameter>();
-                        if(vInjectParameter != null)
-                        {
-                            var parameterTypeDefaultValue = parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null;
-                            if (!object.Equals(vInjectParameter.DefaultValue, parameterTypeDefaultValue))
-                            {
-                                parameterInstances.Add(vInjectParameter.DefaultValue);
-                            }
-                            else
-                            {
-                                parameterInstances.Add(InternalResolve(parameter.ParameterType, vInjectParameter.RegistrationName));
-                            }
-                        }
-                        else if(autoInjectParameters && !parameter.ParameterType.GetTypeInfo().IsValueType)
-                        {
-                            parameterInstances.Add(InternalResolve(parameter.ParameterType));
-                        }
-                        else
-                        {
-                            parameterInstances.Add(parameter.ParameterType.GetTypeInfo().IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null);
-                        }
-                    }
-                   return Activator.CreateInstance(priorizedRegisteredInstance.InstanceType, parameterInstances.ToArray());
-                default: //LifeTime.Global
-                    return priorizedRegisteredInstance.Instance;
-            }
+            return priorizedRegisteredType;
         }
 
-        void Inject(object instance)
+        private void InjectProperties(object instance)
         {
             var instanceType = instance.GetType();
             if (LoopDetectionList.Count(t => t == instanceType) > 1) return;
@@ -142,7 +178,7 @@ namespace VoldarGames.NetCore.VInjector
                 {
                     property.SetValue(instance, InternalResolve(property.PropertyType, vInjectAttribute.RegistrationName));
                     LoopDetectionList.Add(instanceType);
-                    Inject(property.GetValue(instance));
+                    InjectProperties(property.GetValue(instance));
                     LoopDetectionList.Remove(instanceType);
                 }
             }

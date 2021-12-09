@@ -4,7 +4,7 @@ using VoldarGames.NetCore.VInjector.Core;
 
 namespace VoldarGames.NetCore.VInjector.UnitTests
 {
-    [VAutoRegister(typeof(IComplexDummyWithCtor), LifeTime.NewInstance, 0, "ComplexDummyWithCtorAndPrimitivesWithValues")]
+    [VAutoRegister(typeof(IComplexDummyWithCtor), LifeTime.Transient, 0, "ComplexDummyWithCtorAndPrimitivesWithValues")]
     internal class ComplexDummyWithCtorAndPrimitivesWithValues : IComplexDummyWithCtor
     {
         [VInjectCtor]

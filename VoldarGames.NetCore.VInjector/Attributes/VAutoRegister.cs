@@ -11,7 +11,7 @@ namespace VoldarGames.NetCore.VInjector.Attributes
         internal int Priority { get; set; }
         internal string RegistrationName { get; set; }
         
-        public VAutoRegister(Type interfaceType, LifeTime lifetime = LifeTime.Global, int priority = 0, string registrationName = null)
+        public VAutoRegister(Type interfaceType, LifeTime lifetime = LifeTime.Singleton, int priority = 0, string registrationName = null)
         {
             InterfaceType = interfaceType;
             Lifetime = lifetime;

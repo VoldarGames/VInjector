@@ -27,7 +27,7 @@ namespace VInjectorTests
             VInjector.RegistrationDictionary.Clear();
             VInjector.Initialize<VInjectorTests>();
 
-            Assert.Equal(9, VInjector.RegistrationDictionary.Count);
+            Assert.Equal(10, VInjector.RegistrationDictionary.Count);
         }
 
         [Trait("Category", "AutoRegister")]
@@ -53,7 +53,7 @@ namespace VInjectorTests
             Assert.NotNull(instanceResult.ComplexDummy);
             Assert.NotNull(instanceResult.ComplexDummy.Dummy);
             Assert.Equal("MoreComplex", VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).RegistrationName);
-            Assert.Equal(LifeTime.NewInstance, VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).LifeTime);
+            Assert.Equal(LifeTime.Transient, VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).LifeTime);
             Assert.Equal(1, VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).Priority);
             Assert.Equal(typeof(IMoreComplexDummy), VInjector.RegistrationDictionary.Keys.Single(type => type.InterfaceType == typeof(IMoreComplexDummy)).InterfaceType);
             Assert.Equal(typeof(MoreComplexDummy), VInjector.RegistrationDictionary.Values.Single(type => type.InstanceType == typeof(MoreComplexDummy)).InstanceType);
@@ -80,8 +80,8 @@ namespace VInjectorTests
 
             Assert.Throws<AlreadyRegisteredTypeVInjectorException>(
             () => {
-                VInjector.Register<IDummy, Dummy>(LifeTime.Global, null, 0, "SameName");
-                VInjector.Register<IDummy, Dummy>(LifeTime.Global, null, 0, "SameName");
+                VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, null, 0, "SameName");
+                VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, null, 0, "SameName");
             });
         }
 
@@ -105,8 +105,8 @@ namespace VInjectorTests
 
             var dummy1 = new Dummy() { Number = 1 };
             var dummy2 = new Dummy() { Number = 2 };
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1);
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy2, 0, "DummyType2");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummy1);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummy2, 0, "DummyType2");
 
             Assert.Same(dummy1, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 1).Instance);
             Assert.Same(dummy2, VInjector.RegistrationDictionary.Values.Single(type => ((Dummy)type.Instance).Number == 2).Instance);
@@ -121,7 +121,7 @@ namespace VInjectorTests
             {
                 Number = 123
             };
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyInstance);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyInstance);
 
             Assert.Single(VInjector.RegistrationDictionary);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
@@ -136,7 +136,7 @@ namespace VInjectorTests
             VInjector.Register<IDummy, Dummy>();
 
             Assert.Equal(typeof(Dummy).Name, VInjector.RegistrationDictionary.Keys.Single().RegistrationName);
-            Assert.Equal(LifeTime.Global, VInjector.RegistrationDictionary.Keys.Single().LifeTime);
+            Assert.Equal(LifeTime.Singleton, VInjector.RegistrationDictionary.Keys.Single().LifeTime);
             Assert.Equal(0, VInjector.RegistrationDictionary.Keys.Single().Priority);
             Assert.Equal(typeof(IDummy), VInjector.RegistrationDictionary.Keys.Single().InterfaceType);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
@@ -152,11 +152,11 @@ namespace VInjectorTests
             {
                 Number = 123
             };
-            VInjector.Register<IDummy, Dummy>(LifeTime.NewInstance, dummyInstance, 1, "MyDummyInstance");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Transient, dummyInstance, 1, "MyDummyInstance");
 
             Assert.Single(VInjector.RegistrationDictionary);
             Assert.Equal("MyDummyInstance", VInjector.RegistrationDictionary.Keys.Single().RegistrationName);
-            Assert.Equal(LifeTime.NewInstance, VInjector.RegistrationDictionary.Keys.Single().LifeTime);
+            Assert.Equal(LifeTime.Transient, VInjector.RegistrationDictionary.Keys.Single().LifeTime);
             Assert.Equal(1, VInjector.RegistrationDictionary.Keys.Single().Priority);
             Assert.Equal(typeof(IDummy), VInjector.RegistrationDictionary.Keys.Single().InterfaceType);
             Assert.Equal(typeof(Dummy), VInjector.RegistrationDictionary.Values.Single().InstanceType);
@@ -195,7 +195,7 @@ namespace VInjectorTests
             {
                 Number = 123
             };
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyInstance);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyInstance);
 
             var instanceResult = VInjector.Resolve<IDummy>();
 
@@ -209,8 +209,8 @@ namespace VInjectorTests
             VInjector.RegistrationDictionary.Clear();
             var dummy1 = new Dummy { Number = 1 };
             var dummy2 = new Dummy { Number = 2 };
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy1, 0, "MyDummy_1");
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy2, 0, "MyDummy_2");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummy1, 0, "MyDummy_1");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummy2, 0, "MyDummy_2");
 
             var instanceResult = VInjector.Resolve<IDummy>("MyDummy_2");
 
@@ -227,7 +227,7 @@ namespace VInjectorTests
                 Number = 123
             };
             //instance parameter must be ignored if NewInstance LifeTime is applied
-            VInjector.Register<IDummy, Dummy>(LifeTime.NewInstance, dummyInstance);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Transient, dummyInstance);
 
             var instanceResult = VInjector.Resolve<IDummy>();
 
@@ -250,8 +250,8 @@ namespace VInjectorTests
                 Number = 222
             };
 
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyInstance);
-            VInjector.Register<IComplexDummy, ComplexDummy>(LifeTime.Global, complex);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyInstance);
+            VInjector.Register<IComplexDummy, ComplexDummy>(LifeTime.Singleton, complex);
 
             var instanceResult = VInjector.Resolve<IComplexDummy>();
 
@@ -282,9 +282,9 @@ namespace VInjectorTests
                 Number = 222
             };
 
-            VInjector.Register<IMoreComplexDummy, MoreComplexDummy>(LifeTime.Global, moreComplexDummy);
-            VInjector.Register<IComplexDummy, ComplexDummy>(LifeTime.Global, complex);
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummy);
+            VInjector.Register<IMoreComplexDummy, MoreComplexDummy>(LifeTime.Singleton, moreComplexDummy);
+            VInjector.Register<IComplexDummy, ComplexDummy>(LifeTime.Singleton, complex);
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummy);
 
             var instanceResult = VInjector.Resolve<IMoreComplexDummy>();
 
@@ -304,8 +304,8 @@ namespace VInjectorTests
 
             var cyclic1 = new CyclicDependencyDummyPart1();
             var cyclic2 = new CyclicDependencyDummyPart2();
-            VInjector.Register<ICyclicDependencyDummyPart1, CyclicDependencyDummyPart1>(LifeTime.Global, cyclic1);
-            VInjector.Register<ICyclicDependencyDummyPart2, CyclicDependencyDummyPart2>(LifeTime.Global, cyclic2);
+            VInjector.Register<ICyclicDependencyDummyPart1, CyclicDependencyDummyPart1>(LifeTime.Singleton, cyclic1);
+            VInjector.Register<ICyclicDependencyDummyPart2, CyclicDependencyDummyPart2>(LifeTime.Singleton, cyclic2);
 
             var instanceResult = VInjector.Resolve<ICyclicDependencyDummyPart1>();
             Assert.Same(cyclic1, instanceResult);
@@ -398,8 +398,8 @@ namespace VInjectorTests
             var dummyA = new Dummy() { Number = 1 };
             var dummyB = new Dummy() { Number = 2 };
 
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyA, registrationName: "DummyA");
-            VInjector.Register<IDummy, Dummy>(LifeTime.Global, dummyB, registrationName: "DummyB");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyA, registrationName: "DummyA");
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyB, registrationName: "DummyB");
 
             var resultA = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndVInjectParameterWithNameA");
             var resultB = VInjector.Resolve<IComplexDummyWithCtor>("ComplexDummyWithCtorAndVInjectParameterWithNameB");
@@ -412,6 +412,29 @@ namespace VInjectorTests
 
             Assert.Same(dummyA, resultA.Dummy);
             Assert.Same(dummyB, resultB.Dummy);
+        }
+
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorDependenciesAndPropertyInjections_NamedDependenciesAreTheSame()
+        {
+            VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var dummyA = new Dummy() { Number = 1 };
+
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyA, registrationName: "DummyA");
+
+            var result = VInjector.Resolve<IFullComplexDummy>("FullComplexDummy");
+
+            Assert.NotNull(result);
+            Assert.NotNull(result.MoreComplexDummy);
+            Assert.NotNull(result.MoreComplexDummy.ComplexDummy);
+            Assert.NotNull(result.MoreComplexDummy.ComplexDummy.Dummy);
+
+            Assert.Equal(1, result.PropertyInjectDummy.Number);
+
+            Assert.Same(dummyA, result.PropertyInjectDummy);
         }
     }
 }

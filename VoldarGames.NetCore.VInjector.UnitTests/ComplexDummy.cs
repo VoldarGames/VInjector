@@ -5,7 +5,7 @@ using VoldarGames.NetCore.VInjector.Core;
 namespace VInjectorTests
 {
     [ExcludeFromCodeCoverage]
-    [VAutoRegister(typeof(IComplexDummy), LifeTime.Global, 0, "MyComplexDummy")]
+    [VAutoRegister(typeof(IComplexDummy), LifeTime.Singleton, 0, "MyComplexDummy")]
     internal class ComplexDummy : IComplexDummy
     {
         [VInject]

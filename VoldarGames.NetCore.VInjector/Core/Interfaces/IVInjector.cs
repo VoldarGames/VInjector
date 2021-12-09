@@ -5,7 +5,7 @@
         void Initialize<TVAppContext>()
             where TVAppContext : IVAppContext;
 
-        void Register<TInterface, TInstance>(LifeTime lifeTime = LifeTime.Global, TInstance instance = default(TInstance), int priority = 0, string registrationName = null)
+        void Register<TInterface, TInstance>(LifeTime lifeTime = LifeTime.Singleton, TInstance instance = default(TInstance), int priority = 0, string registrationName = null)
             where TInstance : class, TInterface, new()
             where TInterface : class;
 
