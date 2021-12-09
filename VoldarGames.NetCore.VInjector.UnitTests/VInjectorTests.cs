@@ -27,7 +27,7 @@ namespace VInjectorTests
             VInjector.RegistrationDictionary.Clear();
             VInjector.Initialize<VInjectorTests>();
 
-            Assert.Equal(9, VInjector.RegistrationDictionary.Count);
+            Assert.Equal(10, VInjector.RegistrationDictionary.Count);
         }
 
         [Trait("Category", "AutoRegister")]
@@ -412,6 +412,29 @@ namespace VInjectorTests
 
             Assert.Same(dummyA, resultA.Dummy);
             Assert.Same(dummyB, resultB.Dummy);
+        }
+
+        [Trait("Category", "AutoRegister_Ctor_Resolve_Success")]
+        [Fact]
+        public void ResolveNewInstanceWithGlobalCtorDependenciesAndPropertyInjections_NamedDependenciesAreTheSame()
+        {
+            VInjector.RegistrationDictionary.Clear();
+            VInjector.Initialize<VInjectorTests>();
+
+            var dummyA = new Dummy() { Number = 1 };
+
+            VInjector.Register<IDummy, Dummy>(LifeTime.Singleton, dummyA, registrationName: "DummyA");
+
+            var result = VInjector.Resolve<IFullComplexDummy>("FullComplexDummy");
+
+            Assert.NotNull(result);
+            Assert.NotNull(result.MoreComplexDummy);
+            Assert.NotNull(result.MoreComplexDummy.ComplexDummy);
+            Assert.NotNull(result.MoreComplexDummy.ComplexDummy.Dummy);
+
+            Assert.Equal(1, result.PropertyInjectDummy.Number);
+
+            Assert.Same(dummyA, result.PropertyInjectDummy);
         }
     }
 }
